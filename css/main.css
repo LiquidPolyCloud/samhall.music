@@ -915,3 +915,24 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   .tray { padding: 1rem; }
   .portrait { width: 132px; height: 132px; }
 }
+
+/* --- Third-party embed (My Music Staff login widget) ---------------------- */
+
+/* The widget injects a cross-origin <iframe> after its own <script> tag, so
+   nothing in here can style what's inside it — only the panel it sits in.
+   It starts at height 0 and grows via postMessage once it has measured
+   itself, so min-height reserves room and stops the page jumping on load. */
+.widget {
+  background: #ffffff;
+  border: 3px solid var(--edge);
+  box-shadow: var(--shadow);
+  padding: 1.1rem;
+  margin: 1.75rem 0;
+  min-height: 200px;
+}
+.widget iframe { display: block; width: 100%; border: 0; }
+
+.widget-fallback {
+  font-family: var(--sans);
+  margin: 0;
+}
