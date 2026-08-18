@@ -1,5 +1,6 @@
 /* Mobile menu toggle. If this script never runs, the footer nav on every page
-   still links to everything, so the site stays fully navigable. */
+   mirrors this menu, and the adventure cards on the home page are plain links,
+   so every page stays reachable without JS. */
 (function () {
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('nav');
