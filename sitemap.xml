@@ -6,4 +6,6 @@
   <url><loc>https://samhall.music/i-dont-know.html</loc><priority>0.8</priority></url>
   <url><loc>https://samhall.music/about.html</loc><priority>0.6</priority></url>
   <url><loc>https://samhall.music/contact.html</loc><priority>0.6</priority></url>
+  <url><loc>https://samhall.music/students.html</loc><priority>0.4</priority></url>
+  <url><loc>https://samhall.music/ai-disclosure.html</loc><priority>0.4</priority></url>
 </urlset>
