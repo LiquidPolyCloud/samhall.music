@@ -555,9 +555,8 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   to   { background-position-x: calc(-72 * var(--px) * 1px); }
 }
 
-/* Static poses — no animation, by design. */
-.mascot--hold    { --w: 21; --h: 31; }   /* fishing "show the catch", arms aloft */
-.mascot--victory { --w: 18; --h: 31; }
+/* Static pose — no animation, by design. */
+.mascot--hold { --w: 21; --h: 31; }   /* fishing "show the catch", arms aloft */
 
 @media (prefers-reduced-motion: reduce) {
   .mascot--idle,
