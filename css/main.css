@@ -680,19 +680,11 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   line-height: 1.5;
   text-align: center;
 }
-/* the select cursor, revealed on hover/focus */
-.select-label::before {
-  content: "\25B8";
-  color: var(--accent);
-  visibility: hidden;
-}
 .select-card:hover .select-label,
 .select-card:focus-visible .select-label {
   background: var(--highlight);
   color: var(--on-accent);
 }
-.select-card:hover .select-label::before,
-.select-card:focus-visible .select-label::before { visibility: visible; }
 
 @media (max-width: 620px) {
   .select { grid-template-columns: 1fr; }
@@ -701,29 +693,62 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   .select-label { justify-content: flex-start; padding-left: 1rem; text-align: left; }
 }
 
-/* --- Skill grid ----------------------------------------------------------- */
+/* --- Skill list ----------------------------------------------------------- */
 
+/* Each skill is a <details>: the tile + name is the summary, the blurb opens
+   underneath. Single column, because the blurbs are paragraphs — a multi-column
+   grid would reflow every other card each time one is opened. */
 .skills {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
   gap: .8rem;
   list-style: none;
   padding: 0;
   margin: 1.5rem 0 0;
 }
 
-.skills li {
+.skill {
+  background: var(--panel);
+  border: 2px solid var(--line);
+}
+.skill[open] { border-color: var(--card-edge); background: var(--screen); }
+
+.skill summary {
   display: flex;
   align-items: center;
   gap: .85rem;
   padding: .65rem .8rem;
-  background: var(--panel);
-  border: 2px solid var(--line);
+  cursor: pointer;
+  list-style: none;          /* Firefox's default triangle */
 }
-.skills span {
+.skill summary::-webkit-details-marker { display: none; }
+.skill summary:hover { background: var(--panel-2); }
+
+.skill-name {
   font-family: var(--pixel);
   font-size: .58rem;
   line-height: 1.5;
+}
+
+/* +/- affordance, so it reads as openable without a disclosure triangle */
+.skill summary::after {
+  content: "+";
+  margin-left: auto;
+  flex: none;
+  font-family: var(--pixel);
+  font-size: .7rem;
+  line-height: 1;
+  color: var(--accent-ink);
+}
+.skill[open] summary::after { content: "\2212"; }
+
+.skill-body {
+  padding: 0 .9rem 1.1rem;
+  margin-left: calc(42px + .85rem);   /* line the text up under the name */
+}
+.skill-body p { margin: 0; }
+
+@media (max-width: 620px) {
+  .skill-body { margin-left: 0; }
 }
 
 .group-label {
@@ -762,6 +787,7 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
 .hero .eyebrow { justify-content: center; }
 .hero p { margin-left: auto; margin-right: auto; }
 .hero .btn-row { justify-content: center; }
+.hero .portrait { display: block; margin: 0 auto 1.75rem; }
 
 /* the wobbling guitars flanking "~ with ~ SAM" */
 .with-row {
@@ -933,5 +959,62 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
 
 .widget-fallback {
   font-family: var(--sans);
+  margin: 0;
+}
+
+/* --- Lessons & Rates ------------------------------------------------------ */
+
+/* The free trial is the main thing people are here for, so it gets the loud
+   bright-blue panel above the price. */
+.trial {
+  border: 3px solid var(--card-edge);
+  box-shadow: var(--shadow);
+  background: var(--highlight);
+  color: var(--on-accent);
+  padding: 1.4rem 1.25rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+.trial p { max-width: 46ch; margin-left: auto; margin-right: auto; }
+.trial p:last-child { margin-bottom: 0; }
+.trial-head {
+  font-family: var(--pixel);
+  font-size: clamp(.72rem, 2.8vw, 1rem);
+  line-height: 1.5;
+  letter-spacing: .04em;
+  margin-bottom: .85rem;
+}
+
+/* The price, big enough to answer the question from across the room. */
+.rate {
+  border: 3px solid var(--card-edge);
+  box-shadow: var(--shadow);
+  background: var(--panel);
+  padding: 2rem 1.25rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+/* Each line sets its own gap, so the selectors have to out-specify the
+   `.rate p` reset above. */
+.rate p { max-width: none; margin: 0; }
+.rate .rate-label {
+  font-family: var(--pixel);
+  font-size: clamp(.55rem, 1.8vw, .7rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 1.9rem;
+}
+.rate .rate-price {
+  font-family: var(--pixel);
+  font-size: clamp(2.2rem, 11vw, 3.5rem);
+  line-height: 1;
+  color: var(--accent);
+  margin: 0 0 1.7rem;
+}
+.rate .rate-unit {
+  font-family: var(--pixel);
+  font-size: clamp(.66rem, 2.4vw, .9rem);
+  line-height: 1.5;
+  color: var(--ink);
   margin: 0;
 }

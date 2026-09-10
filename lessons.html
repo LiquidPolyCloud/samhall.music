@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — Sam Hall Music &amp; Digital Media</title>
-<meta name="description" content="Get in touch with Sam Hall about music and digital media lessons in Portland, Oregon.">
+<title>Lessons &amp; Rates — Sam Hall Music &amp; Digital Media</title>
+<meta name="description" content="Private music and digital media lessons in Portland, Oregon. $40 per half hour, and your first trial lesson is free. Book online.">
 <link rel="icon" href="assets/favicon.png" sizes="16x16" type="image/png">
 <link rel="icon" href="assets/favicon32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="assets/favicon48.png" sizes="48x48" type="image/png">
@@ -31,9 +31,9 @@
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="index.html#adventure">Choose Your Own Adventure</a>
-        <a href="lessons.html">Lessons &amp; Rates</a>
+        <a href="lessons.html" aria-current="page">Lessons &amp; Rates</a>
         <a href="about.html">About</a>
-        <a href="contact.html" aria-current="page">Contact</a>
+        <a href="contact.html">Contact</a>
         <a href="students.html">Existing Students</a>
       </nav>
     </div>
@@ -43,33 +43,50 @@
     <main class="screen" id="main">
       <div class="page">
 
-        <div class="contact-head">
-          <span class="tile"><img class="pix" src="assets/icons/envelope.png" alt="" width="44" height="44"></span>
-          <div>
-            <p class="eyebrow">Get in touch</p>
-            <h1>Contact</h1>
+        <div class="page-head">
+          <div class="page-head-text">
+            <p class="eyebrow">Booking</p>
+            <h1>Lessons &amp; Rates</h1>
+          </div>
+          <div class="item-get">
+            <img class="item" src="assets/icons/calendar.png" alt="" width="16" height="16">
+            <img class="mascot mascot--hold" src="assets/mascot-hold.png" alt="" width="21" height="31">
           </div>
         </div>
 
-        <p class="tagline">I'll respond when I can!</p>
-
-        <div class="btn-row">
-          <a class="btn" href="mailto:samallenhall@gmail.com?subject=Looking%20for%20Lessons">
-            <img class="pix" src="assets/icons/envelope.png" alt="" width="20" height="20">
-            samallenhall@gmail.com
-          </a>
+        <div class="trial">
+          <p class="trial-head">1 FREE TRIAL LESSON</p>
+          <p>Every new student gets a free trial lesson &mdash; no cost, no commitment. It's the best way to see if we're a good fit. Book yours below!</p>
         </div>
 
-        <p class="lede">Along with whatever questions or concerns you have, consider including these other helpful details in an email to me:</p>
+        <div class="rate">
+          <p class="rate-label">Lessons are</p>
+          <p class="rate-price">$40</p>
+          <p class="rate-unit">per half hour</p>
+        </div>
 
-        <ul class="facts">
-          <li>Preferred contact method and info</li>
-          <li>What you're interested in</li>
-          <li>Your availability</li>
-        </ul>
+        <p>Lessons run in 30min blocks, so a 1 hour lesson is $80. Most younger students (ages 5&ndash;8) do best with 30 minutes; older students often want the full hour. We can figure out the right fit together at your free trial lesson.</p>
+
+        <p>Lessons happen at my home studio near the Columbia Slough in Portland, OR, and cover everything from <a href="instruments.html">instruments</a> to <a href="digital-media.html">digital media</a>. Not sure which? <a href="i-dont-know.html">Start here</a>.</p>
+
+        <hr class="rule">
+
+        <h2>Book your free trial lesson</h2>
+
+        <!-- My Music Staff booking widget. The script renders in place, so it has
+             to stay inside this container. The settings blob is the public
+             embed ID for the studio, not a secret. -->
+        <div class="widget">
+          <script src="https://app.mymusicstaff.com/Widget/v4/Widget.ashx?settings=eyJTY2hvb2xJRCI6InNjaF9HNUNKaiIsIldlYnNpdGVJRCI6Indic190aHZKciIsIldlYnNpdGVCbG9ja0lEIjoid2JiX3o2am5KSmgifQ=="></script>
+          <noscript>
+            <p class="widget-fallback">The booking form needs JavaScript turned on. No problem &mdash; just <a href="mailto:samallenhall@gmail.com?subject=Looking%20for%20Lessons">email me</a> and we'll set something up.</p>
+          </noscript>
+        </div>
+
+        <p>Rather just talk it through first? <a href="contact.html">Get in touch</a> and I'll answer any questions you've got.</p>
 
         <div class="next">
-          <p class="eyebrow">Still browsing?</p>
+          <p class="eyebrow">Wanna look at something else?</p>
           <div class="btn-row">
             <a class="btn btn--ghost" href="instruments.html">
               <img class="pix" src="assets/icons/guitar.png" alt="" width="20" height="20">
@@ -79,7 +96,6 @@
               <img class="pix" src="assets/icons/recording.png" alt="" width="20" height="20">
               Digital Media
             </a>
-            <a class="btn btn--ghost" href="about.html">About Me</a>
           </div>
         </div>
 
