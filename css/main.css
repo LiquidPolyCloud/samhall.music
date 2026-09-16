@@ -809,16 +809,16 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   justify-content: center;
   gap: clamp(.5rem, 3vw, 1.75rem);
   margin: 0 0 1.5rem;
-  /* Now that the tilde phrase can't break, it can't be squeezed either. Let the
-     gifs drop below it under heavy font scaling instead of pushing the row —
-     and the page — sideways. */
-  flex-wrap: wrap;
 }
 
 .with-row img {
   width: clamp(58px, 13vw, 88px);
   height: auto;
-  flex: none;
+  /* The text sets the row's width and the gifs are decoration, so when the
+     phrase grows under font scaling the gifs give way rather than the row
+     breaking onto extra lines. min-width keeps them from vanishing. */
+  flex: 0 1 auto;
+  min-width: 34px;
 }
 
 .with {
