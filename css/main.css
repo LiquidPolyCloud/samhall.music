@@ -809,6 +809,10 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   justify-content: center;
   gap: clamp(.5rem, 3vw, 1.75rem);
   margin: 0 0 1.5rem;
+  /* Now that the tilde phrase can't break, it can't be squeezed either. Let the
+     gifs drop below it under heavy font scaling instead of pushing the row —
+     and the page — sideways. */
+  flex-wrap: wrap;
 }
 
 .with-row img {
@@ -833,6 +837,9 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   line-height: 1;
   color: var(--accent-2);
   text-indent: .22em;   /* balance the trailing letter-space */
+  /* One ornament, so it breaks as one: the flanking gifs squeeze this column
+     narrow enough that the closing ~ was dropping to a line by itself. */
+  white-space: nowrap;
 }
 
 .with-name {
