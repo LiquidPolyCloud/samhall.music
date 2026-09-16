@@ -251,7 +251,19 @@ a:hover { color: var(--accent-ink); }
     padding: .35rem;
   }
   .nav.is-open { display: flex; }
-  .nav a { padding: .85rem .8rem; font-size: .62rem; }
+
+  /* The dropdown can only be as wide as the viewport, so the longest label
+     ("Choose Your Own Adventure") has to be allowed to wrap. Left on nowrap it
+     keeps its single-line width, spills out past the menu's right edge and
+     drags the whole page sideways — which shows up once a phone's font scaling
+     pushes the root size past ~20px. line-height opens up for the second line. */
+  .nav a {
+    padding: .85rem .8rem;
+    font-size: .62rem;
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.45;
+  }
   .brand-sub { display: none; }
 }
 
