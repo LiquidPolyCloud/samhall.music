@@ -1211,3 +1211,72 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
   color: var(--ink);
   margin: 0;
 }
+
+/* --- Consent notice ------------------------------------------------------- */
+
+/* Sits above the console rather than inside it, so it reads as the site
+   asking rather than as part of the page content. Non-modal on purpose:
+   ignoring it leaves the site fully usable, and the pixel stays off. */
+.consent {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding: 1rem;
+  background: var(--bezel);
+  border-top: 3px solid var(--edge);
+  animation: consent-in .18s steps(3) both;
+}
+
+@keyframes consent-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.consent-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  background: var(--panel);
+  border: 3px solid var(--card-edge);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+}
+
+.consent-copy {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: clamp(.8rem, 2.4vw, .95rem);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.consent-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+/* The banner's buttons sit tighter than page buttons — it is a prompt,
+   not a destination. */
+.consent .btn {
+  font-size: .6rem;
+  padding: .8rem 1rem;
+  box-shadow: var(--shadow-sm);
+}
+.consent .btn:hover  { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--edge); }
+.consent .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--edge); }
+
+@media (max-width: 30rem) {
+  .consent-btns { width: 100%; }
+  .consent-btns .btn { flex: 1 1 auto; justify-content: center; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consent { animation: none; }
+}
