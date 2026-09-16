@@ -192,7 +192,8 @@ a:hover { color: var(--accent-ink); }
 
 .nav { display: flex; align-items: center; gap: .15rem; }
 
-/* Anchor targets must clear the sticky .deck when jumped to (#adventure). */
+/* Anchor targets must clear the sticky .deck when jumped to (#adventure,
+   plus #me / #space behind the About page switch). */
 :target { scroll-margin-top: 6rem; }
 
 .nav a {
@@ -886,6 +887,179 @@ p { margin: 0 0 1.1rem; max-width: var(--measure); }
 .embed--video iframe { aspect-ratio: 16 / 9; height: auto; }
 .embed--audio iframe { height: 352px; }
 .embed--game  iframe { height: 167px; }
+
+/* --- About: header switch + the space ------------------------------------- */
+
+/* The About page's h1 doubles as its section switcher. Only the underline
+   marks these as links, so colour isn't the sole affordance.
+
+   "About Me | About the Space" is 26 characters, and Press Start 2P is a
+   full em per character, so holding it on one line means overriding the h1
+   size down to ~26ch of the available column — well under the 1.5rem floor
+   the h1 rule keeps for bright orange. Hence --accent-ink (4.9:1 on cream),
+   which stays legible at any size. */
+.about-switch {
+  white-space: nowrap;
+  font-size: clamp(.5rem, 2.85vw, 1.65rem);
+  color: var(--accent-ink);
+}
+.about-switch a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: .12em;
+  text-underline-offset: .3em;
+  text-decoration-color: var(--line);
+}
+.about-switch a:hover,
+.about-switch a:focus-visible {
+  color: var(--accent-2);
+  text-decoration-color: currentColor;
+}
+.about-switch-sep { color: var(--ink-soft); }
+
+/* Hero photo. Same border + hard shadow as .card, but the image is flush to
+   the frame — no padding, so the photo itself is the card. */
+.photo {
+  margin: 0;
+  background: var(--panel);
+  border: 3px solid var(--card-edge);
+  box-shadow: var(--shadow);
+}
+.photo img { width: 100%; height: auto; }
+.photo figcaption {
+  font-family: var(--pixel);
+  font-size: .55rem;
+  line-height: 1.7;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  padding: .7rem .85rem;
+  border-top: 3px solid var(--card-edge);
+}
+
+/* The yard you wait in and the room you play in, side by side. Both images are
+   forced to the same 3:2 frame and the figures stretch to equal heights, so the
+   two captions sit on one line across the pair. */
+.photo-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin: 1.5rem 0 2rem;
+}
+.photo-pair .photo { display: flex; flex-direction: column; }
+.photo-pair .photo img { aspect-ratio: 3 / 2; object-fit: cover; }
+.photo-pair .photo figcaption { margin-top: auto; }
+
+/* Half of an 820px column is too small for either photo to read. Stack them. */
+@media (max-width: 620px) {
+  .photo-pair { grid-template-columns: 1fr; }
+}
+
+/* flow-root so the floated consoles below are contained and can't escape
+   into the .next block. */
+.space-copy { display: flow-root; }
+
+/* The prose here has to run the full column, not the usual --measure: the
+   floated console is what pulls each line back to a readable length. Once a
+   float ends, .space-copy p on its own would run long, so the copy is paced
+   to keep a console alongside it. */
+.space-copy p { max-width: none; }
+
+/* --- Mini consoles -------------------------------------------------------- */
+
+/* Each photo of the space sits in a handheld: shell, notched bezel, scanlined
+   screen, d-pad and buttons — the same parts as the .device wrapper the whole
+   site lives in, shrunk down. They alternate sides and the copy wraps around
+   them. clear: both, so two never sit on one line and pinch the text between. */
+.gb {
+  --gb-notch: 5px;
+  float: right;
+  clear: both;
+  width: 15rem;
+  max-width: 100%;
+  margin: .4rem 0 1.6rem 1.9rem;
+  padding: .7rem .7rem .55rem;
+  background: var(--shell);
+  border: 3px solid var(--edge);
+  box-shadow:
+    var(--shadow),
+    inset  3px 0 0 var(--shell-light),
+    inset -3px 0 0 var(--shell-dark);
+}
+.gb--left { float: left; margin: .4rem 1.9rem 1.6rem 0; }
+
+.gb-screen {
+  position: relative;
+  padding: 5px;
+  background: var(--bezel);
+  clip-path: polygon(
+    0 var(--gb-notch), var(--gb-notch) var(--gb-notch), var(--gb-notch) 0,
+    calc(100% - var(--gb-notch)) 0, calc(100% - var(--gb-notch)) var(--gb-notch), 100% var(--gb-notch),
+    100% calc(100% - var(--gb-notch)), calc(100% - var(--gb-notch)) calc(100% - var(--gb-notch)), calc(100% - var(--gb-notch)) 100%,
+    var(--gb-notch) 100%, var(--gb-notch) calc(100% - var(--gb-notch)), 0 calc(100% - var(--gb-notch))
+  );
+}
+/* 4:3 crops ~11% off the sides of a 3:2 frame, which is enough to read as a
+   handheld screen without meaningfully recomposing the photo. */
+.gb-screen img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.gb-screen::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+}
+
+.gb-controls {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .55rem .1rem .15rem;
+}
+.gb-dpad {
+  width: 18px; height: 18px; flex: none;
+  background:
+    linear-gradient(var(--shell-dark), var(--shell-dark)) 0 50% / 100% 6px no-repeat,
+    linear-gradient(var(--shell-dark), var(--shell-dark)) 50% 0 / 6px 100% no-repeat;
+}
+.gb-grille {
+  flex: 1;
+  height: 9px;
+  background: repeating-linear-gradient(0deg, var(--shell-dark) 0 2px, transparent 2px 5px);
+  opacity: .85;
+}
+.gb-abtns { display: flex; gap: .3rem; flex: none; }
+.gb-abtns i {
+  width: 10px; height: 10px;
+  border: 2px solid var(--shell-dark);
+}
+.gb-abtns i:first-child { background: var(--accent); }
+.gb-abtns i:last-child  { background: var(--highlight); }
+
+.gb figcaption {
+  font-family: var(--pixel);
+  font-size: .5rem;
+  line-height: 1.8;
+  letter-spacing: .03em;
+  color: var(--on-shell);
+  padding: .1rem .1rem 0;
+}
+
+/* Too narrow to float against: centre them in the flow at full width. */
+@media (max-width: 620px) {
+  .gb,
+  .gb--left {
+    float: none;
+    width: auto;
+    max-width: 20rem;
+    margin: 1.9rem auto;
+  }
+  .space-copy p { max-width: var(--measure); }
+}
 
 /* --- Contact -------------------------------------------------------------- */
 
