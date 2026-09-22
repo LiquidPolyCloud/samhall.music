@@ -38,6 +38,22 @@
     fbq('track', 'PageView');
   }
 
+  /* A finished booking becomes a Meta "Lead". The My Music Staff widget is a
+     cross-origin iframe, but its loader script runs in this page and, when a
+     form is completed, posts { sbFormSubmission: { formTitle, formType } } to
+     window.parent — which, for a top-level page, is this window. formType is
+     "signup" for the booking form and "contact" for a contact form; the login
+     widget on the students page sends nothing. No fbq means no consent, so
+     nothing is sent. */
+  var LEAD_FORMS = { signup: true, contact: true };
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window || !window.fbq) return;
+    var sub = event.data && event.data.sbFormSubmission;
+    if (!sub || !LEAD_FORMS[sub.formType]) return;
+    fbq('track', 'Lead', { content_name: sub.formTitle || sub.formType });
+  });
+
   /* Facebook sets _fbp / _fbc once it loads. Withdrawing consent has to
      clear them too, or the visitor stays tagged after saying no. */
   function clearFbCookies() {
@@ -71,7 +87,7 @@
       '<div class="consent-inner">' +
         '<p class="consent-copy">' +
           'Can I use cookies to see how many people find this site? ' +
-          'It only counts visits — nothing you type, and nothing personal. ' +
+          'It only counts visits and bookings — nothing you type, and nothing personal. ' +
           '<a href="privacy.html">Which cookies, and why</a>' +
         '</p>' +
         '<div class="consent-btns">' +
