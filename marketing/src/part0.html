@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Sam Hall - Social Spot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --room:#3d1305; --shell:#b83c11; --shell-dark:#7d2709; --shell-light:#f15a29;
+    --bezel:#2a2622; --screen:#fcf8e8; --panel:#f7f1dc; --ink:#2a2622;
+    --accent:#f15a29; --highlight:#27aae1; --on-shell:#fcf8e8;
+    --pixel:"Press Start 2P",ui-monospace,monospace;
+    --sans:"DotGothic16",ui-sans-serif,system-ui,sans-serif;
+    color-scheme:light;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0; padding:1.25rem; min-height:100vh;
+    font-family:var(--sans); font-size:1rem; color:var(--on-shell);
+    background-color:var(--room);
+    background-image:
+      repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px);
+    display:flex; flex-direction:column; align-items:center; gap:1rem;
+  }
+  h1{font-family:var(--pixel); font-size:.78rem; letter-spacing:.04em; margin:0; font-weight:400}
+  .sub{margin:.35rem 0 0; font-size:.9rem; letter-spacing:.08em; text-transform:uppercase; color:#fce4d5}
+  header{text-align:center}
+
+  #stage{
+    display:block; max-width:100%; max-height:66vh;
+    background:var(--room); box-shadow:0 0 0 4px var(--shell-dark), 0 10px 0 rgba(0,0,0,.35);
+  }
+  body.rec #stage{box-shadow:0 0 0 4px var(--accent), 0 10px 0 rgba(0,0,0,.35)}
+
+  .panel{
+    width:100%; max-width:640px; background:var(--shell);
+    border:4px solid var(--shell-dark); padding:1rem;
+    display:flex; flex-direction:column; gap:.85rem;
+  }
+  .row{display:flex; flex-wrap:wrap; gap:.55rem; align-items:center}
+  .row-label{font-family:var(--pixel); font-size:.5rem; letter-spacing:.1em; color:#fce4d5; width:100%}
+
+  button{
+    font-family:var(--pixel); font-size:.58rem; line-height:1.4;
+    padding:.7rem .8rem; border:3px solid var(--ink); background:var(--panel);
+    color:var(--ink); box-shadow:4px 4px 0 var(--ink); cursor:pointer;
+    transition:transform .06s steps(1),box-shadow .06s steps(1);
+  }
+  button:hover{transform:translate(2px,2px); box-shadow:2px 2px 0 var(--ink)}
+  button:active{transform:translate(4px,4px); box-shadow:0 0 0 var(--ink)}
+  button.primary{background:var(--highlight)}
+  button[aria-pressed="true"]{background:var(--highlight)}
+  .chip{font-size:.5rem; padding:.5rem .6rem; box-shadow:3px 3px 0 var(--ink); text-transform:uppercase}
+
+  #scrub{flex:1; min-width:200px; accent-color:var(--highlight)}
+  #time{font-family:var(--pixel); font-size:.55rem; color:var(--on-shell); min-width:9.5ch}
+  label.chk{display:flex; align-items:center; gap:.4rem; font-size:.9rem; letter-spacing:.06em; text-transform:uppercase; color:#fce4d5}
+
+  .status{
+    margin:0; font-size:.92rem; line-height:1.5; color:#fce4d5;
+    border-top:3px solid var(--shell-dark); padding-top:.7rem; min-height:2.4em;
+  }
+  .status.bad{color:#ffd9cc}
+  .note{max-width:640px; font-size:.92rem; line-height:1.6; color:#fce4d5; opacity:.9; margin:0}
+  .note b{color:#fff; font-weight:400}
+
+  /* ?bare=1 strips the tool away and shows the frame at native size */
+  body.bare{padding:0; gap:0; display:block}
+  body.bare header, body.bare .panel, body.bare .note{display:none}
+  body.bare #stage{max-height:none; max-width:none; box-shadow:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SAM HALL &mdash; SOCIAL SPOT</h1>
+  <p class="sub">15 seconds &middot; silent &middot; built from the site</p>
+</header>
+
+<canvas id="stage" width="1080" height="1920"></canvas>
+
+<div class="panel">
+  <div class="row">
+    <button id="play">Play</button>
+    <button id="restart">Restart</button>
+    <input id="scrub" type="range" min="0" max="15" step="0.01" value="0" aria-label="Scrub">
+    <span id="time">0.00 / 15.00s</span>
+  </div>
+
+  <div class="row">
+    <span class="row-label">Cut</span>
+    <button data-cut="full" aria-pressed="true">Full &mdash; title first</button>
+    <button data-cut="offerfirst" aria-pressed="false">Offer first</button>
+  </div>
+
+  <div class="row">
+    <span class="row-label">Aspect</span>
+    <button data-fmt="9x16" aria-pressed="true">9:16 Reels</button>
+    <button data-fmt="4x5" aria-pressed="false">4:5 Feed</button>
+    <button data-fmt="1x1" aria-pressed="false">1:1 Square</button>
+    <button data-fmt="16x9" aria-pressed="false">16:9 Wide</button>
+    <label class="chk"><input id="loop" type="checkbox" checked> Loop</label>
+  </div>
+
+  <div class="row">
+    <span class="row-label">Jump to scene</span>
+    <span id="chapters" class="row" style="gap:.4rem"></span>
+  </div>
+
+  <div class="row">
+    <span class="row-label">Export</span>
+    <button id="rec" class="primary">Record video</button>
+    <button id="png">Save this frame</button>
+  </div>
+
+  <p id="status" class="status"></p>
+</div>
+
+<p class="note">
+  <b>Recording:</b> it captures in real time, so leave this tab visible and in front for
+  the full 15 seconds &mdash; browsers throttle background tabs and you would get a stuttering file.
+  The video saves straight to your downloads. Downloads only work when this file is opened
+  from your own computer.
+</p>
+
+<script>
