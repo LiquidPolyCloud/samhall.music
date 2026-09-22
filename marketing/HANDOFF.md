@@ -1,7 +1,7 @@
 # Ad campaign — where things stand
 
-Last worked on 2026-09-22. Everything in `marketing/` is **untracked** — nothing here
-is committed or deployed. Decide whether to commit it; the site does not need it.
+Last worked on 2026-09-22. `marketing/` is committed (since `db317e6`), but nothing
+here is linked from the site; it rides along on GitHub Pages without being used.
 
 ## What this is
 
@@ -20,6 +20,7 @@ palette, type and furniture, laid out for a phone.
 | `marketing/build.ps1` | Concatenates `src/` → `ad.html`. Verified byte-identical. |
 | `marketing/ad.html` | Built artifact — self-contained, ~85KB, runs from `file://`. Also a previewer (play/scrub/jump-to-scene/cut switch/aspect switch/PNG export). |
 | `marketing/render.ps1` | Headless-Chrome-over-CDP frame renderer → ffmpeg → MP4. |
+| `marketing/stills.ps1` | Same CDP approach, one PNG per still → `out/stills/`. The list of stills (name / cut / time) is at the top of the script. |
 | `marketing/out/*.mp4` | The eight finished files: two cuts x four aspects. |
 | `marketing/ad-copy.md` | Primary texts, headlines, descriptions, the destination URL and its UTMs. Drafted, still not chosen. |
 
@@ -89,6 +90,26 @@ full cut still has it; that is what the A/B is for.
 
 Silent by design (feed autoplays muted). Both hold at the end because Reels
 loops.
+
+## Stills (static image ads)
+
+`.\stills.ps1` renders four frames that work without motion, each in 4:5, 1:1 and 9:16:
+
+| Still | Cut / time | Content |
+|---|---|---|
+| `offer` | full 13.3 | 1 FREE TRIAL LESSON, $40/half hour, BOOK NOW, samhall.music |
+| `flash` | offerfirst 1.2 | FREE TRIAL LESSON + MUSIC & MEDIA LESSONS / PORTLAND, OR |
+| `title` | full 2.2 | MUSIC & DIGITAL MEDIA LESSONS / PORTLAND / ALL AGES |
+| `sam` | full 9.8 | Portrait, HI, I'M SAM, 10+ years |
+
+Times are picked so nothing is mid-animation. The offer card's address has a
+blinking cursor, drawn when `(lt*3) % 2 < 1.15`; 13.3 is in the off phase and
+clear of the BOOK NOW press. `title-1x1` is the weakest: the square layout leaves
+the lower half mostly empty.
+
+The $40 panel used to be drawn at the wide layout's right-column x even in tall
+formats, so only a sliver of its box showed at the screen edge. Fixed 2026-09-22
+(`src/engine4.js`, `box(wide ? x2 : x, ...)`); the videos were re-rendered.
 
 ## Output
 
@@ -164,15 +185,20 @@ console shell is a full-bleed frame and auto-crop slices the bezel and tray.
 
 - The pixel (`1128133582979107`, `js/pixel.js`) is **consent-gated** — nothing fires
   until the visitor clicks "Sure". Correct privacy behaviour, but Meta undercounts.
-- **`PageView` is the only event.** The booking widget is MyMusicStaff's third-party
-  script, so a completed booking is invisible.
-- Therefore: **optimise for Landing Page Views or Link Clicks, not Conversions.** Meta
-  wants ~50 conversions/week to leave the learning phase and a local lessons business
-  won't hit that. Judge success by trials actually booked in MyMusicStaff.
-- Adding a booking-completion event was offered and **declined** (2026-09-22). It would
-  have meant asking MyMusicStaff for a redirect-on-success URL and firing a `Lead` on
-  the page it lands on. Don't re-propose it unless asked — the decision was made with
-  the tradeoff on the table.
+- **A completed booking now fires a standard `Lead`** (added 2026-09-22, `js/pixel.js`).
+  No MMS redirect needed: MMS's widget loader, running in our page, posts
+  `{ sbFormSubmission: { formTitle, formType } }` to `window.parent` when a form
+  completes. `formType` is `"signup"` (booking) or `"contact"`; login sends nothing.
+  Found by reading `Widget.ashx` and the iframe's Angular bundle. If MMS changes that
+  message, the `Lead` goes silent without any error, so check Events Manager now and then.
+- MMS's loader *also* calls `fbq('trackCustom', 'signup', …)` on its own whenever `fbq`
+  exists. So a custom `signup` event appears in Events Manager next to `Lead`. It's the same
+  booking, so use `Lead` and ignore `signup`.
+- Still: **optimise for Landing Page Views or Link Clicks, not Leads**, at least at
+  first. Meta wants ~50 conversions/week to leave the learning phase and a local
+  lessons business won't hit that. Use `Lead` as a *reported* column in Ads Manager, and
+  judge success by trials actually booked in MyMusicStaff (consent gating means `Lead`
+  undercounts).
 - Also raised, not acted on: the consent gate is opt-*in*, which is stricter than
   Oregon law asks for a Portland-only audience. Switching it to opt-out would recover
   most of the traffic Meta cannot currently see. That is a values call, not a bug.

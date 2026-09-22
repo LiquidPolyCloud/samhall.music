@@ -314,7 +314,7 @@ function sOffer(s, lt) {
   /* --- .rate ------------------------------------------------------------ */
   const rY = y;
   slam(midR, rY + rateH / 2, lt, .46, function () {
-    box(x2, rY, colW, rateH, C.panel, C.ink, bw, sh, C.ink);
+    box(wide ? x2 : x, rY, colW, rateH, C.panel, C.ink, bw, sh, C.ink);
     const iw = colW - bw * 2 - s.w * .04;
     const k = squeeze([
       [fitSize('LESSONS ARE', iw, Math.round(rateH * .13), PIXEL, .02), 1.95],

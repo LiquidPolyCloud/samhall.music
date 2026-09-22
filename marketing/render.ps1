@@ -55,7 +55,7 @@ if (-not $ffmpeg) { throw "Could not find ffmpeg. Install it with: winget instal
 
 $page = Join-Path $PSScriptRoot 'ad.html'
 if (-not (Test-Path $page)) { throw "Could not find $page" }
-$pageUrl = 'file:///' + ($page -replace '\\', '/')
+$pageUrl = 'file:///' + (($page -replace '\\', '/') -replace ' ', '%20')
 
 New-Item -ItemType Directory -Force -Path $Out | Out-Null
 
@@ -129,20 +129,23 @@ foreach ($fmt in $Formats) {
   Write-Host "=== $cut / $fmt ===" -ForegroundColor Cyan
 
   $port    = Get-Random -Minimum 9500 -Maximum 9899
-  $profile = Join-Path ([IO.Path]::GetTempPath()) ("adrender-" + [Guid]::NewGuid().ToString('N').Substring(0, 8))
+  $profileDir = Join-Path ([IO.Path]::GetTempPath()) ("adrender-" + [Guid]::NewGuid().ToString('N').Substring(0, 8))
   $frames  = Join-Path $Out "frames$tag-$fmt"
   New-Item -ItemType Directory -Force -Path $frames | Out-Null
 
   # t=0 makes the page hold a single frame instead of running its own loop,
   # so the only thing moving the clock is us.
-  $args = @(
+  $chromeArgs = @(
     '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--hide-scrollbars', '--force-device-scale-factor=1',
     '--mute-audio', '--disable-background-timer-throttling',
-    "--remote-debugging-port=$port", "--user-data-dir=$profile",
+    "--remote-debugging-port=$port", "--user-data-dir=$profileDir",
     ($pageUrl + "?bare=1&cut=$cut&fmt=$fmt&t=0")
   )
-  $proc = Start-Process -FilePath $chrome -ArgumentList $args -PassThru -WindowStyle Hidden
+  # PS 5.1's Start-Process joins arguments with spaces without quoting them, and
+  # both the profile dir and the page live under "C:\Users\Sam Hall\".
+  $chromeArgs = $chromeArgs | ForEach-Object { if ($_ -match ' ') { '"' + $_ + '"' } else { $_ } }
+  $proc = Start-Process -FilePath $chrome -ArgumentList $chromeArgs -PassThru -WindowStyle Hidden
 
   try {
     # wait for the debugging endpoint, then find the page target
@@ -195,7 +198,7 @@ foreach ($fmt in $Formats) {
   } finally {
     try { if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force } } catch { }
     Start-Sleep -Milliseconds 400
-    try { Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue } catch { }
+    try { Remove-Item $profileDir -Recurse -Force -ErrorAction SilentlyContinue } catch { }
   }
 
   # --- encode ----------------------------------------------------------------
