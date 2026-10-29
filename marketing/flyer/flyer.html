@@ -140,7 +140,7 @@
   .stats .price { font-family: var(--pixel); font-size: 30px; color: var(--accent); }
 
   .qr { flex: none; padding: 26px 28px 24px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-  .qr svg { display: block; width: 300px; height: 300px; margin: 6px auto; }
+  .qr svg { display: block; width: 320px; height: 320px; margin: 6px auto; }
   .qr p { font-family: var(--pixel); font-size: 24px; line-height: 1; }
   .qr .qr-url { font-size: 21px; color: var(--accent-2); }
 
@@ -199,7 +199,7 @@
     </div>
     <div class="box qr">
       <p>SCAN TO BOOK</p>
-      <svg id="qr" shape-rendering="crispEdges"></svg>
+      <svg id="qr"></svg>
       <p class="qr-url">SAMHALL.MUSIC</p>
     </div>
   </section>
@@ -224,13 +224,63 @@
   var qr = qrcode(0, "M");
   qr.addData(URL_);
   qr.make();
-  var n = qr.getModuleCount(), quiet = 4, size = n + quiet * 2, d = "";
+
+  // Styled to match the screen: data modules are LCD pixels with a small gap,
+  // each finder eye holds a dark D-pad on a coloured square, and a pixel eighth
+  // note sits in the middle. The eyes stay solid, full-size squares: gaps or
+  // cut corners there stop strict decoders finding them. The note blanks a 9x9
+  // hole, which level M's error correction covers easily. At this URL length
+  // the code is version 6 (41 modules), which has no alignment pattern in the
+  // centre; if the URL grows, check it still scans. The white box padding
+  // doubles as quiet zone, so the svg only adds 2.
+  var n = qr.getModuleCount(), quiet = 2, size = n + quiet * 2;
+  var GAP = 0.14, INK = "#2a2622", ORANGE = "#c53c0c", TEAL = "#12718f";
+  var NOTE = [
+    "...XX..",
+    "...XXX.",
+    "...X.XX",
+    "...X..X",
+    ".XXX...",
+    "XXXX...",
+    ".XX...."
+  ];
+  var hole = Math.floor(n / 2) - 4;  // top-left of the 9x9 hole
+  var eyes = [[0, 0, ORANGE], [0, n - 7, TEAL], [n - 7, 0, ORANGE]];
+  var paths = {};
+  function px(r, c, fill) {
+    var s = 1 - GAP, o = GAP / 2;
+    paths[fill] = (paths[fill] || "") + "M" + (c + quiet + o) + " " + (r + quiet + o) + "h" + s + "v" + s + "h-" + s + "z";
+  }
+  // eyes are stacked whole rects, so no hairline seams show between modules
+  function rect(r, c, w, h, fill) {
+    return '<rect x="' + (c + quiet) + '" y="' + (r + quiet) + '" width="' + w + '" height="' + h + '" fill="' + fill + '"/>';
+  }
+  function inEye(r, c) {
+    for (var i = 0; i < eyes.length; i++)
+      if (r >= eyes[i][0] && r < eyes[i][0] + 7 && c >= eyes[i][1] && c < eyes[i][1] + 7) return true;
+    return false;
+  }
   for (var r = 0; r < n; r++)
-    for (var c = 0; c < n; c++)
-      if (qr.isDark(r, c)) d += "M" + (c + quiet) + " " + (r + quiet) + "h1v1h-1z";
+    for (var c = 0; c < n; c++) {
+      if (inEye(r, c)) continue;
+      if (r >= hole && r < hole + 9 && c >= hole && c < hole + 9) continue;
+      if (qr.isDark(r, c)) px(r, c, INK);
+    }
+  NOTE.forEach(function (row, i) {
+    for (var j = 0; j < row.length; j++)
+      if (row[j] == "X") px(hole + 1 + i, hole + 1 + j, ORANGE);
+  });
+  var html = Object.keys(paths).map(function (f) {
+    return '<path fill="' + f + '" d="' + paths[f] + '"/>';
+  }).join("");
+  eyes.forEach(function (e) {
+    var r = e[0], c = e[1];
+    html += rect(r, c, 7, 7, INK) + rect(r + 1, c + 1, 5, 5, "#fff") + rect(r + 2, c + 2, 3, 3, e[2]) +
+            rect(r + 3, c + 2, 3, 1, INK) + rect(r + 2, c + 3, 1, 3, INK);
+  });
   var svg = document.getElementById("qr");
   svg.setAttribute("viewBox", "0 0 " + size + " " + size);
-  svg.innerHTML = '<path fill="#2a2622" d="' + d + '"/>';
+  svg.innerHTML = html;
   if (/[?&]guides=1/.test(location.search)) document.body.classList.add("guides");
 </script>
 </body>
