@@ -1,6 +1,7 @@
 <#
   flyer.html -> out/ : the PNG, the guides proof, the print PDF (with bleed)
-  and its CMYK copy.
+  and its CMYK copy, plus a US Letter test page (-test-letter.pdf) for
+  printing a cut-out mock-up at home. render.sh does not make the test page.
 
   The Windows counterpart of render.sh, for machines without firefox or
   python: headless Chrome/Edge over the DevTools Protocol takes the
@@ -118,8 +119,8 @@ public static class FlyerPdf {
     return ms.ToArray();
   }
 
-  public static string Write(string png, string pdfPath, double bleedIn) {
-    int w, h; byte[] rgb;
+  static byte[] ReadRgb(string png, out int w, out int h) {
+    byte[] rgb;
     using (var bmp = new Bitmap(png)) {
       w = bmp.Width; h = bmp.Height;
       var bd = bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
@@ -134,25 +135,86 @@ public static class FlyerPdf {
       }
       bmp.UnlockBits(bd);
     }
+    return rgb;
+  }
 
-    var ci = CultureInfo.InvariantCulture;
+  static readonly CultureInfo ci = CultureInfo.InvariantCulture;
+  static string F(string fmt, params object[] args) { return string.Format(ci, fmt, args); }
+
+  // The print PDF: one page the size of the image, TrimBox inset by the bleed.
+  public static string Write(string png, string pdfPath, double bleedIn) {
+    int w, h;
+    byte[] rgb = ReadRgb(png, out w, out h);
     double pw = w * 72 / DPI, ph = h * 72 / DPI, bl = bleedIn * 72;
+    string content = F("q {0:0.000} 0 0 {1:0.000} 0 0 cm /Im0 Do Q", pw, ph);
+    string page = F("/MediaBox [0 0 {0:0.000} {1:0.000}] /BleedBox [0 0 {0:0.000} {1:0.000}] " +
+                    "/TrimBox [{2:0.000} {2:0.000} {3:0.000} {4:0.000}]", pw, ph, bl, pw - bl, ph - bl);
+    Save(pdfPath, page, content, rgb, w, h, false);
+    return F("{0}: {1}x{2}px, {3}x{4}in, bleed {5}in", Path.GetFileName(pdfPath), w, h, w / DPI, h / DPI, bleedIn);
+  }
+
+  // A US Letter page for a home-printer mock-up: the card at true size with the
+  // bleed clipped off, its trim tucked into the top-left corner of the page so
+  // only the right and bottom edges need cutting, plus a ruler to confirm the
+  // printer didn't scale it.
+  public static string WriteLetterTest(string png, string pdfPath, double bleedIn) {
+    int w, h;
+    byte[] rgb = ReadRgb(png, out w, out h);
+    double pw = w * 72 / DPI, ph = h * 72 / DPI, bl = bleedIn * 72;
+    double tw = pw - 2 * bl, th = ph - 2 * bl;  // the trimmed card
+    const double LW = 612, LH = 792;            // 8.5 x 11 in
+    double cy = LH - th;                        // bottom edge of the card
+    var c = new StringBuilder();
+    // the card, clipped to its trim
+    c.Append(F("q 0 {0:0.000} {1:0.000} {2:0.000} re W n {3:0.000} 0 0 {4:0.000} {5:0.000} {6:0.000} cm /Im0 Do Q\n",
+               cy, tw, th, pw, ph, -bl, cy - bl));
+    // crop marks continuing the two cut lines past the card's corner
+    c.Append(F("q 0.5 w 0 G {0:0.000} {1:0.000} m {0:0.000} {2:0.000} l S {3:0.000} {4:0.000} m {5:0.000} {4:0.000} l S Q\n",
+               tw, cy - 6, cy - 30, tw + 6, cy, tw + 30));
+    string[] lines = {
+      "Sam Hall flyer - 5 x 7 in test print",
+      "",
+      "Print at 100% / Actual size, not Fit to page.",
+      "Cut along the right and bottom edges of the card (the marks show where).",
+      "A white strip along the top or left edge is just your printer's margin;",
+      "it hides a sliver of the case, not anything on the screen.",
+      "",
+      "Check the scale: this ruler should measure exactly 2 inches.",
+    };
+    double rx = 36;
+    c.Append(F("BT /F1 11 Tf 14 TL {0:0.000} {1:0.000} Td", rx, cy - 40));
+    foreach (var l in lines) c.Append(" (" + l.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)") + ") '");
+    c.Append(" ET\n");
+    // under the text, a 2 in ruler with inch and quarter-inch ticks
+    double ry = cy - 40 - 14 * lines.Length - 36;
+    c.Append(F("q 1 w 0 G {0:0.000} {1:0.000} m {2:0.000} {1:0.000} l S ", rx, ry, rx + 144));
+    for (int i = 0; i <= 8; i++)
+      c.Append(F("{0:0.000} {1:0.000} m {0:0.000} {2:0.000} l S ", rx + i * 18, ry, ry + (i % 4 == 0 ? 14 : 7)));
+    c.Append("Q\n");
+    c.Append(F("BT /F1 8 Tf {0:0.000} {1:0.000} Td (0) Tj ET BT /F1 8 Tf {2:0.000} {1:0.000} Td (1 in) Tj ET BT /F1 8 Tf {3:0.000} {1:0.000} Td (2 in) Tj ET\n",
+               rx - 2, ry - 12, rx + 72 - 6, rx + 144 - 6));
+    string page = F("/MediaBox [0 0 {0} {1}]", LW, LH);
+    Save(pdfPath, page, c.ToString(), rgb, w, h, true);
+    return F("{0}: 5x7in card in the top-left corner of an 8.5x11in page", Path.GetFileName(pdfPath));
+  }
+
+  static void Save(string pdfPath, string pageBoxes, string content, byte[] rgb, int w, int h, bool withFont) {
     byte[] img = Zlib(rgb);
-    string content = string.Format(ci, "q {0:0.000} 0 0 {1:0.000} 0 0 cm /Im0 Do Q", pw, ph);
     var objs = new byte[][] {
       Encoding.ASCII.GetBytes("<< /Type /Catalog /Pages 2 0 R >>"),
       Encoding.ASCII.GetBytes("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
-      Encoding.ASCII.GetBytes(string.Format(ci,
-        "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {0:0.000} {1:0.000}] " +
-        "/BleedBox [0 0 {0:0.000} {1:0.000}] " +
-        "/TrimBox [{2:0.000} {2:0.000} {3:0.000} {4:0.000}] " +
-        "/Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>", pw, ph, bl, pw - bl, ph - bl)),
+      Encoding.ASCII.GetBytes("<< /Type /Page /Parent 2 0 R " + pageBoxes + " " +
+        "/Resources << /XObject << /Im0 4 0 R >>" + (withFont ? " /Font << /F1 6 0 R >>" : "") + " >> /Contents 5 0 R >>"),
       Concat(Encoding.ASCII.GetBytes(string.Format(
         "<< /Type /XObject /Subtype /Image /Width {0} /Height {1} /ColorSpace /DeviceRGB " +
         "/BitsPerComponent 8 /Filter /FlateDecode /Length {2} >>\nstream\n", w, h, img.Length)),
         img, Encoding.ASCII.GetBytes("\nendstream")),
       Encoding.ASCII.GetBytes("<< /Length " + content.Length + " >>\nstream\n" + content + "\nendstream"),
     };
+    if (withFont) {
+      Array.Resize(ref objs, 6);
+      objs[5] = Encoding.ASCII.GetBytes("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+    }
 
     var pdf = new MemoryStream();
     Put(pdf, new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34, 0x0A, 0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A });  // %PDF-1.4 + binary marker
@@ -167,7 +229,6 @@ public static class FlyerPdf {
     sb.Append("trailer\n<< /Size " + (objs.Length + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF\n");
     Put(pdf, Encoding.ASCII.GetBytes(sb.ToString()));
     File.WriteAllBytes(pdfPath, pdf.ToArray());
-    return string.Format(ci, "{0}: {1}x{2}px, {3}x{4}in, bleed {5}in", Path.GetFileName(pdfPath), w, h, w / DPI, h / DPI, bleedIn);
   }
 
   static byte[] Concat(params byte[][] parts) {
@@ -242,6 +303,7 @@ document.fonts.check('24px "Press Start 2P"') && document.fonts.check('24px DotG
 
 $pdf = Join-Path $Out 'samhall-flyer-5x7.pdf'
 Write-Host "  $([FlyerPdf]::Write((Join-Path $Out 'samhall-flyer-5x7.png'), $pdf, $Bleed))"
+Write-Host "  $([FlyerPdf]::WriteLetterTest((Join-Path $Out 'samhall-flyer-5x7.png'), (Join-Path $Out 'samhall-flyer-5x7-test-letter.pdf'), $Bleed))"
 
 # CMYK copy, for printers that want CMYK files (colors shift slightly);
 # same settings as render.sh
