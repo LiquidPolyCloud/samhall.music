@@ -1,11 +1,13 @@
 <#
-  flyer.html -> out/ : the PNG, the guides proof and the print PDF (with bleed).
+  flyer.html -> out/ : the PNG, the guides proof, the print PDF (with bleed)
+  and its CMYK copy.
 
-  The Windows counterpart of render.sh, for machines without firefox, python
-  or ghostscript: headless Chrome/Edge over the DevTools Protocol takes the
+  The Windows counterpart of render.sh, for machines without firefox or
+  python: headless Chrome/Edge over the DevTools Protocol takes the
   screenshots, and the PDF is written the same way png2pdf.py does it (one
-  300 dpi RGB image, TrimBox inset by the bleed). It does not make the CMYK
-  copy; that still needs ghostscript, via render.sh.
+  300 dpi RGB image, TrimBox inset by the bleed). The CMYK copy needs
+  Ghostscript for Windows (gswin64c, from ghostscript.com); without it that
+  step is skipped with a warning.
 
   Usage:
     .\render.ps1
@@ -25,6 +27,14 @@ $chrome = @(
   "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe"
 ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 if (-not $chrome) { throw "Could not find Chrome or Edge." }
+
+# the installer doesn't put Ghostscript on PATH, so also look where it lands
+$gs = Get-Command gswin64c -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source
+if (-not $gs) {
+  $gs = Get-ChildItem "$env:ProgramFiles\gs\*\bin\gswin64c.exe" -ErrorAction SilentlyContinue |
+        Sort-Object { [version]($_.Directory.Parent.Name -replace '^gs', '') } -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+}
 
 $page = Join-Path $PSScriptRoot 'flyer.html'
 $pageUrl = 'file:///' + (($page -replace '\\', '/') -replace ' ', '%20')
@@ -230,6 +240,22 @@ document.fonts.check('24px "Press Start 2P"') && document.fonts.check('24px DotG
   try { Remove-Item $profileDir -Recurse -Force -ErrorAction SilentlyContinue } catch { }
 }
 
-Write-Host "  $([FlyerPdf]::Write((Join-Path $Out 'samhall-flyer-5x7.png'), (Join-Path $Out 'samhall-flyer-5x7.pdf'), $Bleed))"
-Write-Host ""
-Write-Host "Done. The CMYK PDF is not remade here; run render.sh where ghostscript is installed." -ForegroundColor Green
+$pdf = Join-Path $Out 'samhall-flyer-5x7.pdf'
+Write-Host "  $([FlyerPdf]::Write((Join-Path $Out 'samhall-flyer-5x7.png'), $pdf, $Bleed))"
+
+# CMYK copy, for printers that want CMYK files (colors shift slightly);
+# same settings as render.sh
+if ($gs) {
+  $cmyk = Join-Path $Out 'samhall-flyer-5x7-cmyk.pdf'
+  & $gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK `
+     -dProcessColorModel=/DeviceCMYK -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode `
+     -dDownsampleColorImages=false -dUseTrimBox=false `
+     "-sOutputFile=$cmyk" $pdf
+  if ($LASTEXITCODE -ne 0) { throw "Ghostscript failed making the CMYK PDF." }
+  Write-Host "  $(Split-Path $cmyk -Leaf)"
+  Write-Host ""
+  Write-Host "Done." -ForegroundColor Green
+} else {
+  Write-Host ""
+  Write-Warning "Ghostscript (gswin64c) not found, so the CMYK PDF was not remade. Install it from ghostscript.com and run this again."
+}

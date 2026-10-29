@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # flyer.html -> out/ : print PDF (with bleed), a PNG, and a guides proof.
-# Needs firefox, python3 and ghostscript (gs) only.
+# Needs firefox, python3 and ghostscript (gs) only. On Windows, use render.ps1.
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p out
