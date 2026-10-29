@@ -1,0 +1,237 @@
+<!doctype html>
+<!--
+  5x7 portrait postcard for GotPrint, one-sided, drawn as a handheld console.
+  Canvas is 5.25 x 7.25 in at 300 dpi (1575 x 2175 px) = 5x7 trim + 0.125in bleed.
+  Trim line sits 37.5px in; keep anything important at least ~100px from the
+  canvas edge. All the words live on the screen; the shell is hardware only.
+  Rendered to PNG by render.sh, then wrapped into a PDF by png2pdf.py.
+  ?guides=1 shows trim (red) and safe (blue) lines for checking.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sam Hall flyer 5x7</title>
+<style>
+  @font-face { font-family: "Press Start 2P"; src: url("fonts/PressStart2P-Regular.ttf"); }
+  @font-face { font-family: "DotGothic16"; src: url("fonts/DotGothic16-Regular.ttf"); }
+
+  :root {
+    --shell:       #b83c11;
+    --shell-dark:  #7d2709;
+    --shell-light: #f15a29;
+    --bezel:       #2a2622;
+    --screen:      #fcf8e8;
+    --panel:       #f7f1dc;
+    --ink:         #2a2622;
+    --ink-soft:    #6b6357;
+    --accent:      #f15a29;
+    --accent-ink:  #c53c0c;
+    --accent-2:    #12718f;
+    --highlight:   #27aae1;
+    --pixel: "Press Start 2P", monospace;
+    --sans: "DotGothic16", sans-serif;
+    --px: 6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1575px; height: 2175px; overflow: hidden; }
+  body {
+    position: relative;
+    background:
+      linear-gradient(to right, rgba(255,255,255,.06), transparent 6%, transparent 94%, rgba(0,0,0,.10)),
+      var(--shell);
+    color: var(--ink);
+    font-family: var(--sans);
+  }
+  img { image-rendering: pixelated; display: block; }
+
+  /* --- shell: hardware only ---------------------------------------------- */
+
+  /* the ridge along the top edge, with the power-switch notches */
+  .ridge { position: absolute; left: 0; right: 0; top: 108px; height: 14px; border-top: 5px solid var(--shell-dark); border-bottom: 5px solid var(--shell-dark); }
+  .ridge::before, .ridge::after { content: ""; position: absolute; top: -40px; width: 5px; height: 40px; background: var(--shell-dark); }
+  .ridge::before { left: 150px; }
+  .ridge::after  { left: 410px; }
+
+  .bezel {
+    position: absolute; left: 120px; right: 120px; top: 175px; height: 1250px;
+    background: var(--bezel);
+    border-radius: 28px 28px 170px 28px;
+  }
+  /* two stripes across the top of the bezel */
+  .bezel::before, .bezel::after { content: ""; position: absolute; left: 44px; right: 44px; height: 7px; }
+  .bezel::before { top: 34px; background: var(--accent); }
+  .bezel::after  { top: 52px; background: var(--highlight); }
+
+  .led {
+    position: absolute; left: 152px; top: 640px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 5px #000, 0 0 22px 6px rgba(241,90,41,.55);
+  }
+
+  .dpad { position: absolute; left: 190px; top: 1530px; width: 300px; height: 300px; filter: drop-shadow(8px 10px 0 var(--shell-dark)); }
+  .dpad::before, .dpad::after { content: ""; position: absolute; background: var(--bezel); border-radius: 12px; }
+  .dpad::before { left: 100px; top: 0; width: 100px; height: 300px; }
+  .dpad::after  { left: 0; top: 100px; width: 300px; height: 100px; }
+  .dpad i { position: absolute; left: 125px; top: 125px; width: 50px; height: 50px; border-radius: 50%; background: #3a352f; z-index: 1; }
+
+  .btn { position: absolute; width: 170px; height: 170px; border-radius: 50%; box-shadow: 8px 10px 0 var(--shell-dark), inset -10px -12px 0 rgba(0,0,0,.18); }
+  .btn.b { left: 1010px; top: 1640px; background: var(--highlight); }
+  .btn.a { left: 1245px; top: 1520px; background: var(--shell-light); }
+  /* the angled well the A/B pair sits in */
+  .well { position: absolute; left: 980px; top: 1590px; width: 470px; height: 200px; border-radius: 100px; background: rgba(0,0,0,.10); transform: rotate(-25deg); }
+
+  .pill { position: absolute; top: 1930px; width: 160px; height: 44px; border-radius: 22px; background: var(--bezel); transform: rotate(-25deg); box-shadow: 0 0 0 10px rgba(0,0,0,.10); }
+  .pill.sel { left: 560px; }
+  .pill.sta { left: 790px; }
+
+  .speaker { position: absolute; left: 1110px; top: 1810px; display: flex; gap: 30px; transform: rotate(-30deg); }
+  .speaker span { width: 30px; height: 170px; border-radius: 15px; background: var(--shell-dark); box-shadow: inset 4px 6px 0 rgba(0,0,0,.35); }
+
+  /* --- screen ------------------------------------------------------------ */
+
+  .screen {
+    position: absolute; left: 235px; right: 235px; top: 260px; height: 1065px;
+    /* LCD dot matrix: a 6px pixel grid with 1px gaps, like the real panel */
+    background:
+      repeating-linear-gradient(to right,  transparent 0 6px, rgba(42,38,34,.07) 6px 7px),
+      repeating-linear-gradient(to bottom, transparent 0 6px, rgba(42,38,34,.07) 6px 7px),
+      var(--screen);
+    /* sunk under the glass: dark rim, then a soft shadow off the top-left */
+    box-shadow: inset 0 0 0 6px #000, inset 16px 18px 24px -6px rgba(0,0,0,.22);
+    padding: 40px 40px 36px;
+    display: flex; flex-direction: column;
+  }
+
+  .title { text-align: center; }
+  .title h1 { font-family: var(--pixel); font-weight: normal; font-size: 76px; line-height: 1; letter-spacing: 4px; text-shadow: 6px 6px 0 var(--accent); }
+  .title p  { font-size: 40px; letter-spacing: 8px; line-height: 1; margin-top: 16px; color: var(--accent-2); }
+
+  .scene { display: flex; align-items: flex-end; gap: 34px; margin-top: 34px; }
+
+  .item-get { flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(1 * var(--px) * 1px); }
+  .item-get .item { width: calc(16 * var(--px) * 1px); height: calc(16 * var(--px) * 1px); transform: translateX(calc(-5 * var(--px) * 1px)); }
+  .item-get .mascot { width: calc(21 * var(--px) * 1px); height: calc(31 * var(--px) * 1px); }
+
+  /* RPG text box: dark frame, cream gap, inner line */
+  .box {
+    position: relative; background: var(--screen);
+    border: 7px solid var(--ink); border-radius: 18px;
+    box-shadow: inset 0 0 0 6px var(--screen), inset 0 0 0 11px var(--ink);
+  }
+  /* QR needs true white behind it for a clean scan */
+  .box.qr { background: #fff; box-shadow: inset 0 0 0 6px #fff, inset 0 0 0 11px var(--ink); }
+  .dialog { flex: 1; padding: 30px 36px 34px; }
+  .dialog .you  { font-family: var(--pixel); font-size: 34px; line-height: 1; }
+  .dialog .big  { font-family: var(--pixel); font-size: 96px; line-height: 1; margin-top: 22px; color: var(--accent); word-spacing: -24px; text-shadow: 6px 6px 0 var(--ink); }
+  .dialog .sub  { font-family: var(--pixel); font-size: 46px; line-height: 1; margin-top: 20px; }
+  .dialog .more { position: absolute; right: 30px; bottom: 26px; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 18px solid var(--ink); }
+
+  .lower { display: flex; gap: 30px; margin-top: auto; margin-bottom: 4px; align-items: stretch; }
+
+  .menu { flex: 1; padding: 26px 26px 22px; }
+  .menu h2 { font-family: var(--pixel); font-weight: normal; font-size: 24px; color: var(--accent-ink); line-height: 1; letter-spacing: 2px; }
+  .menu h2::before { content: ""; display: inline-block; margin-right: 12px; border-top: 11px solid transparent; border-bottom: 11px solid transparent; border-left: 16px solid var(--ink); vertical-align: -2px; }
+  .row { display: flex; justify-content: space-between; gap: 8px; margin: 12px 0 18px; }
+  .row figure { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .row img { width: 56px; height: 56px; }
+  .row figcaption { font-size: 24px; line-height: 1; margin-top: 8px; white-space: nowrap; }
+  .stats { border-top: 4px dashed var(--ink-soft); padding-top: 12px; }
+  .stats p { display: flex; justify-content: center; align-items: baseline; font-size: 30px; line-height: 1.5; }
+  .stats .price { font-family: var(--pixel); font-size: 30px; color: var(--accent); }
+
+  .qr { flex: none; padding: 26px 28px 24px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+  .qr svg { display: block; width: 300px; height: 300px; margin: 6px auto; }
+  .qr p { font-family: var(--pixel); font-size: 24px; line-height: 1; }
+  .qr .qr-url { font-size: 21px; color: var(--accent-2); }
+
+  /* --- print guides (?guides=1) ----------------------------------------- */
+  .guide { position: absolute; pointer-events: none; display: none; }
+  .guides .guide { display: block; }
+  .guide.trim { inset: 37.5px; outline: 2px solid red; }
+  .guide.safe { inset: 75px; outline: 2px dashed blue; }
+</style>
+</head>
+<body>
+
+<div class="ridge"></div>
+<div class="bezel"></div>
+<span class="led"></span>
+
+<main class="screen">
+  <header class="title">
+    <h1>SAM HALL</h1>
+    <p>MUSIC &amp; DIGITAL MEDIA</p>
+  </header>
+
+  <section class="scene">
+    <div class="item-get">
+      <img class="item" src="../../assets/icons/calendar.png" alt="">
+      <img class="mascot" src="../../assets/mascot-hold.png" alt="">
+    </div>
+    <div class="box dialog">
+      <p class="you">YOU GOT</p>
+      <p class="big">1 FREE</p>
+      <p class="sub">TRIAL LESSON!</p>
+      <span class="more"></span>
+    </div>
+  </section>
+
+  <section class="lower">
+    <div class="box menu">
+      <h2>MUSIC</h2>
+      <div class="row">
+        <figure><img src="../../assets/icons/drums.png" alt=""><figcaption>Drums</figcaption></figure>
+        <figure><img src="../../assets/icons/guitar.png" alt=""><figcaption>Guitar</figcaption></figure>
+        <figure><img src="../../assets/icons/synth.png" alt=""><figcaption>Synth</figcaption></figure>
+        <figure><img src="../../assets/icons/question.png" alt=""><figcaption>Others</figcaption></figure>
+      </div>
+      <h2>DIGITAL MEDIA</h2>
+      <div class="row">
+        <figure><img src="../../assets/icons/recording.png" alt=""><figcaption>Recording</figcaption></figure>
+        <figure><img src="../../assets/icons/animation.png" alt=""><figcaption>Animation</figcaption></figure>
+        <figure><img src="../../assets/icons/videography.png" alt=""><figcaption>Video</figcaption></figure>
+        <figure><img src="../../assets/icons/photography.png" alt=""><figcaption>Photo</figcaption></figure>
+      </div>
+      <div class="stats">
+        <p>Kids · Teens · Adults</p>
+        <p><span class="price">$40</span>&nbsp;/ half hour</p>
+      </div>
+    </div>
+    <div class="box qr">
+      <p>SCAN TO BOOK</p>
+      <svg id="qr" shape-rendering="crispEdges"></svg>
+      <p class="qr-url">SAMHALL.MUSIC</p>
+    </div>
+  </section>
+</main>
+
+<span class="dpad"><i></i></span>
+<span class="well"></span>
+<span class="btn b"></span>
+<span class="btn a"></span>
+<span class="pill sel"></span>
+<span class="pill sta"></span>
+<div class="speaker"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+<div class="guide trim"></div>
+<div class="guide safe"></div>
+
+<script src="qrcode.min.js"></script>
+<script>
+  // Flyer scans land on the lessons page, tagged so they show up apart from
+  // the Meta ads (same utm scheme as marketing/ad-copy.md).
+  var URL_ = "https://samhall.music/lessons.html?utm_source=flyer&utm_medium=print&utm_campaign=postcard-2026-10";
+  var qr = qrcode(0, "M");
+  qr.addData(URL_);
+  qr.make();
+  var n = qr.getModuleCount(), quiet = 4, size = n + quiet * 2, d = "";
+  for (var r = 0; r < n; r++)
+    for (var c = 0; c < n; c++)
+      if (qr.isDark(r, c)) d += "M" + (c + quiet) + " " + (r + quiet) + "h1v1h-1z";
+  var svg = document.getElementById("qr");
+  svg.setAttribute("viewBox", "0 0 " + size + " " + size);
+  svg.innerHTML = '<path fill="#2a2622" d="' + d + '"/>';
+  if (/[?&]guides=1/.test(location.search)) document.body.classList.add("guides");
+</script>
+</body>
+</html>
